@@ -21,13 +21,20 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.ProtocolException;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HttpContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -74,7 +81,22 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 							tomorrow.getDate());
 			// referer="http://www.wateroffice.ec.gc.ca/graph/graph_e.html?mode=text&stn=02HB004&syr=2010&smo=09&sday=25&eyr=2010&emo=09&eday=27&prm1=6";
 
-			RelaxedHttpClient httpclient = new RelaxedHttpClient();
+			DefaultHttpClient httpClient = new DefaultHttpClient();//new RelaxedHttpClient();
+			httpClient.setRedirectStrategy(new DefaultRedirectStrategy(){
+				public boolean isRedirected(
+			            final HttpRequest request,
+			            final HttpResponse response,
+			            final HttpContext context) throws ProtocolException {
+					boolean isDefaultRedirected = super.isRedirected(request, response, context);
+					if(!isDefaultRedirected){
+						int statusCode = response.getStatusLine().getStatusCode();
+						//redirect regardless of method
+						if(statusCode == HttpStatus.SC_MOVED_TEMPORARILY)return true;
+					}
+					return isDefaultRedirected;
+				}
+				
+			});
 
 			HttpPost method = new HttpPost(
 					"http://www.wateroffice.ec.gc.ca/include/disclaimer.php");
@@ -84,8 +106,8 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 			requestParams.add(new BasicNameValuePair("disclaimer_action",
 					"I Agree"));
 			method.setEntity(new UrlEncodedFormEntity(requestParams));
-
-			HttpResponse response = httpclient.execute(method);
+			
+			HttpResponse response = httpClient.execute(method);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 
 				DocumentBuilderFactory factory = DocumentBuilderFactory
