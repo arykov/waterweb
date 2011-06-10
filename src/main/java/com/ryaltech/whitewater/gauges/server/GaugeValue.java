@@ -10,20 +10,27 @@ public class GaugeValue {
 	public String getGaugeId() {
 		return gaugeId;
 	}
-	public void setGaugeId(String gaugeId) {
+	public GaugeValue setGaugeId(String gaugeId) {
 		this.gaugeId = gaugeId;
+		return this;
 	}
 	public float getLevel() {
 		return level;
 	}
-	public void setLevel(float level) {
+	public GaugeValue setLevel(float level) {
 		this.level = level;
+		return this;
 	}
 	public Date getLastUpdated() {
 		return lastUpdated;
 	}
-	public void setLastUpdated(Date lastUpdated) {
+	public GaugeValue setLastUpdated(Date lastUpdated) {
 		this.lastUpdated = lastUpdated;
+		return this;
+	}
+	
+	public String toString(){
+		return String.format("Gauge: %s at %s was: %s", gaugeId, lastUpdated, level);
 	}
 
 }

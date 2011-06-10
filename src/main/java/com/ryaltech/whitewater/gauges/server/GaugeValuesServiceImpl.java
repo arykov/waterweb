@@ -13,8 +13,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -22,7 +24,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -31,7 +32,24 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class GaugeValuesServiceImpl implements GaugeValuesService {
-	private static Logger logger = Logger.getLogger(GaugeValuesServiceImpl.class);
+	private static SimpleDateFormat GaugeDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss");
+	private static Logger logger = Logger
+			.getLogger(GaugeValuesServiceImpl.class);
+
+	private static XPathExpression expr;
+
+	static {
+		XPathFactory xpathFactory = XPathFactory.newInstance();
+		XPath xpath = xpathFactory.newXPath();
+
+		try {
+			expr = xpath
+					.compile("//table[@id=\"dataTable\"]//tr[last()]/td/text()");
+		} catch (Exception ex) {
+			throw new RuntimeException("Unable to compile XPath", ex);
+		}
+	}
 
 	public Date yesterday() {
 		GregorianCalendar calendar = new GregorianCalendar();
@@ -73,13 +91,12 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 			HttpURLConnection httpURLConnection = (HttpURLConnection) url
 					.openConnection();
 
-			
 			httpURLConnection
 					.setRequestProperty("User-Agent",
 							"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.3) Gecko/20100401");
 			httpURLConnection.setRequestProperty("Referer", referer);
 			httpURLConnection.setInstanceFollowRedirects(false);
-			
+
 			httpURLConnection.setRequestMethod("POST");
 			httpURLConnection.setUseCaches(false);
 			httpURLConnection.setDoOutput(true);
@@ -96,48 +113,59 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 			stream.writeBytes(sbContent.toString());
 			stream.flush();
 			stream.close();
-			
 
-			if(httpURLConnection.getResponseCode() != 302){
-				logger.error(String.format("Unexpected HTTP code: %d while trying to agree to EC Water Office disclaimer for gauge %s. Expected HTTP code 302",httpURLConnection.getResponseCode(), gaugeId ));
-				gaugeValues.add(null);				
-				
-			}else{
-				String newPageUri = httpURLConnection.getHeaderField("Location");
-				if(newPageUri == null){
-					logger.error(String.format("Unexpected lack of redirect location after agree to EC Water Office disclaimer for gauge %s.", gaugeId ));
+			if (httpURLConnection.getResponseCode() != 302) {
+				logger.error(String
+						.format("Unexpected HTTP code: %d while trying to agree to EC Water Office disclaimer for gauge %s. Expected HTTP code 302",
+								httpURLConnection.getResponseCode(), gaugeId));
+				gaugeValues.add(null);
+
+			} else {
+				String newPageUri = httpURLConnection
+						.getHeaderField("Location");
+				if (newPageUri == null) {
+					logger.error(String
+							.format("Unexpected lack of redirect location after agree to EC Water Office disclaimer for gauge %s.",
+									gaugeId));
 					newPageUri = referer;
 				}
-				List<String>cookies = httpURLConnection.getHeaderFields().get("Set-Cookie");
+				List<String> cookies = httpURLConnection.getHeaderFields().get(
+						"Set-Cookie");
 				httpURLConnection.disconnect();
-			
-				//follow redirect
-				httpURLConnection = (HttpURLConnection)new URL(newPageUri).openConnection();
-				//copy cookies
+
+				// follow redirect
+				httpURLConnection = (HttpURLConnection) new URL(newPageUri)
+						.openConnection();
+				// copy cookies
 				StringBuffer cookieBuffer = new StringBuffer();
-				for(String cookie:cookies){
-					String chunks[]=cookie.split(";");
-					if(cookieBuffer.length()>0)cookieBuffer.append("; ");
-					cookieBuffer.append(chunks[0]);				  
+				for (String cookie : cookies) {
+					String chunks[] = cookie.split(";");
+					if (cookieBuffer.length() > 0)
+						cookieBuffer.append("; ");
+					cookieBuffer.append(chunks[0]);
 				}
-				httpURLConnection.setRequestProperty("Cookie", cookieBuffer.toString());
-				//do the usual
+				httpURLConnection.setRequestProperty("Cookie",
+						cookieBuffer.toString());
+				// do the usual
 				httpURLConnection.setUseCaches(false);
 				httpURLConnection.setDoOutput(false);
 				httpURLConnection.setDoInput(true);
 				InputStream inputStream = httpURLConnection.getInputStream();
-				
+
 				BufferedReader in = new BufferedReader(new InputStreamReader(
 						inputStream));
 				StringBuffer html = new StringBuffer();
 				String line;
 				while ((line = in.readLine()) != null) {
+					line = line.replace("xmlns=", "ignore=");
 					html.append(line);
-					
+
 				}
-				logger.debug(String.format("For gauge id: %s got the following HTML: %s", gaugeId, html));
+				logger.debug(String.format(
+						"For gauge id: %s got the following HTML: %s", gaugeId,
+						html));
 				inputStream.close();
-				
+
 				if (httpURLConnection.getResponseCode() == 200) {
 
 					DocumentBuilderFactory factory = DocumentBuilderFactory
@@ -148,111 +176,36 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 
 						@Override
 						public InputSource resolveEntity(String publicId,
-								String systemId) throws SAXException, IOException {							
+								String systemId) throws SAXException,
+								IOException {
 							return new InputSource(new StringReader(""));
 						}
 					});
-					Document doc = builder.parse(new InputSource(new StringReader(html.toString())));
+					Document doc = builder.parse(new InputSource(
+							new StringReader(html.toString())));
 
-					XPathFactory xpathFactory = XPathFactory.newInstance();
-					XPath xpath = xpathFactory.newXPath();
-					XPathExpression expr =
-					 xpath.compile("//table[@id=\"dataTable\"]//tr/td");
-					/*
-					XPathExpression expr = xpath
-							.compile("/html/body/div/div/div[6]/div[2]/div[2]/form[3]/div/div[2]/table/tbody/tr[last()]/td/text()");
-							*/
-					NodeList nodeList = (NodeList) expr.evaluate(doc,
-							XPathConstants.NODESET);
+					NodeList nodeList;
+					synchronized (expr) {
+						nodeList = (NodeList) expr.evaluate(doc,
+								XPathConstants.NODESET);
+					}
 					if (nodeList != null && nodeList.getLength() == 2) {
-						SimpleDateFormat sdf = new SimpleDateFormat(
-								"yyyy-MM-dd HH:mm:ss");
-						String date = nodeList.item(0).getNodeValue();
-						String value = nodeList.item(1).getNodeValue();
-						System.out.println(sdf.parse(date));
-						System.out.println(value);
+
+						String lastUpdateStr = nodeList.item(0).getNodeValue();
+						String gaugeValueStr = nodeList.item(1).getNodeValue();
+						Date lastUpdated = GaugeDateFormat.parse(lastUpdateStr);
+						float gaugeValue = Float.parseFloat(gaugeValueStr);
+						GaugeValue gv = new GaugeValue().setGaugeId(gaugeId)
+								.setLastUpdated(lastUpdated)
+								.setLevel(gaugeValue);
+						logger.debug(String.format("Parsed gauge value: %s", gv));
+						gaugeValues.add(gv);
+
 					}
 
-				}
-
-				
-				
-			}
-			
-			
-			
-/*			
-
-			DefaultHttpClient httpClient = new DefaultHttpClient();
-			ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(
-					httpClient.getConnectionManager().getSchemeRegistry(),
-					ProxySelector.getDefault());
-			httpClient.setRoutePlanner(routePlanner);
-			httpClient.setRedirectStrategy(new DefaultRedirectStrategy() {
-				public boolean isRedirected(final HttpRequest request,
-						final HttpResponse response, final HttpContext context)
-						throws ProtocolException {
-					boolean isDefaultRedirected = super.isRedirected(request,
-							response, context);
-					if (!isDefaultRedirected) {
-						int statusCode = response.getStatusLine()
-								.getStatusCode();
-						// redirect regardless of method
-						if (statusCode == HttpStatus.SC_MOVED_TEMPORARILY)
-							return true;
-					}
-					return isDefaultRedirected;
-				}
-
-			});
-
-			HttpPost method = new HttpPost(
-					"http://www.wateroffice.ec.gc.ca/include/disclaimer.php");
-
-			method.addHeader("Referer", referer);
-			List<NameValuePair> requestParams = new ArrayList<org.apache.http.NameValuePair>();
-			requestParams.add(new BasicNameValuePair("disclaimer_action",
-					"I Agree"));
-			method.setEntity(new UrlEncodedFormEntity(requestParams));
-
-			HttpResponse response = httpClient.execute(method);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-
-				DocumentBuilderFactory factory = DocumentBuilderFactory
-						.newInstance();
-				DocumentBuilder builder = factory.newDocumentBuilder();
-
-				builder.setEntityResolver(new EntityResolver() {
-
-					@Override
-					public InputSource resolveEntity(String publicId,
-							String systemId) throws SAXException, IOException {
-						System.out.println("Ignoring " + publicId + ", "
-								+ systemId);
-						return new InputSource(new StringReader(""));
-					}
-				});
-				Document doc = builder.parse(response.getEntity().getContent());
-
-				XPathFactory xpathFactory = XPathFactory.newInstance();
-				XPath xpath = xpathFactory.newXPath();
-				// XPathExpression expr =
-				// xpath.compile("//table[@id=\"dataTable\"]//tr/td");
-				XPathExpression expr = xpath
-						.compile("/html/body/div/div/div[6]/div[2]/div[2]/form[3]/div/div[2]/table/tbody/tr[last()]/td/text()");
-				NodeList nodeList = (NodeList) expr.evaluate(doc,
-						XPathConstants.NODESET);
-				if (nodeList != null && nodeList.getLength() == 2) {
-					SimpleDateFormat sdf = new SimpleDateFormat(
-							"yyyy-MM-dd HH:mm:ss");
-					String date = nodeList.item(0).getNodeValue();
-					String value = nodeList.item(1).getNodeValue();
-					System.out.println(sdf.parse(date));
-					System.out.println(value);
 				}
 
 			}
-			*/
 
 		}
 
