@@ -3,6 +3,7 @@ package com.ryaltech.whitewater.gauges.server;
 import java.util.Date;
 
 public class GaugeValue {
+	
 	private String gaugeId;
 	private float level;
 	private Date lastUpdated;

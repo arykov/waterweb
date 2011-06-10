@@ -6,10 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.HttpURLConnection;
-import java.net.ProxySelector;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -25,18 +22,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -44,6 +31,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class GaugeValuesServiceImpl implements GaugeValuesService {
+	private static Logger logger = Logger.getLogger(GaugeValuesServiceImpl.class);
 
 	public Date yesterday() {
 		GregorianCalendar calendar = new GregorianCalendar();
@@ -108,19 +96,24 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 			stream.writeBytes(sbContent.toString());
 			stream.flush();
 			stream.close();
+			
 
 			if(httpURLConnection.getResponseCode() != 302){
-				throw new RuntimeException("Unexpected HTTP response from ");
+				logger.error(String.format("Unexpected HTTP code: %d while trying to agree to EC Water Office disclaimer for gauge %s. Expected HTTP code 302",httpURLConnection.getResponseCode(), gaugeId ));
+				gaugeValues.add(null);				
+				
 			}else{
 				String newPageUri = httpURLConnection.getHeaderField("Location");
 				if(newPageUri == null){
-					//log warning
+					logger.error(String.format("Unexpected lack of redirect location after agree to EC Water Office disclaimer for gauge %s.", gaugeId ));
 					newPageUri = referer;
 				}
 				List<String>cookies = httpURLConnection.getHeaderFields().get("Set-Cookie");
 				httpURLConnection.disconnect();
-				
+			
+				//follow redirect
 				httpURLConnection = (HttpURLConnection)new URL(newPageUri).openConnection();
+				//copy cookies
 				StringBuffer cookieBuffer = new StringBuffer();
 				for(String cookie:cookies){
 					String chunks[]=cookie.split(";");
@@ -128,17 +121,61 @@ public class GaugeValuesServiceImpl implements GaugeValuesService {
 					cookieBuffer.append(chunks[0]);				  
 				}
 				httpURLConnection.setRequestProperty("Cookie", cookieBuffer.toString());
+				//do the usual
 				httpURLConnection.setUseCaches(false);
 				httpURLConnection.setDoOutput(false);
 				httpURLConnection.setDoInput(true);
 				InputStream inputStream = httpURLConnection.getInputStream();
+				
 				BufferedReader in = new BufferedReader(new InputStreamReader(
 						inputStream));
-				String line = null;
+				StringBuffer html = new StringBuffer();
+				String line;
 				while ((line = in.readLine()) != null) {
-					System.out.println(line);
+					html.append(line);
+					
 				}
+				logger.debug(String.format("For gauge id: %s got the following HTML: %s", gaugeId, html));
 				inputStream.close();
+				
+				if (httpURLConnection.getResponseCode() == 200) {
+
+					DocumentBuilderFactory factory = DocumentBuilderFactory
+							.newInstance();
+					DocumentBuilder builder = factory.newDocumentBuilder();
+
+					builder.setEntityResolver(new EntityResolver() {
+
+						@Override
+						public InputSource resolveEntity(String publicId,
+								String systemId) throws SAXException, IOException {							
+							return new InputSource(new StringReader(""));
+						}
+					});
+					Document doc = builder.parse(new InputSource(new StringReader(html.toString())));
+
+					XPathFactory xpathFactory = XPathFactory.newInstance();
+					XPath xpath = xpathFactory.newXPath();
+					XPathExpression expr =
+					 xpath.compile("//table[@id=\"dataTable\"]//tr/td");
+					/*
+					XPathExpression expr = xpath
+							.compile("/html/body/div/div/div[6]/div[2]/div[2]/form[3]/div/div[2]/table/tbody/tr[last()]/td/text()");
+							*/
+					NodeList nodeList = (NodeList) expr.evaluate(doc,
+							XPathConstants.NODESET);
+					if (nodeList != null && nodeList.getLength() == 2) {
+						SimpleDateFormat sdf = new SimpleDateFormat(
+								"yyyy-MM-dd HH:mm:ss");
+						String date = nodeList.item(0).getNodeValue();
+						String value = nodeList.item(1).getNodeValue();
+						System.out.println(sdf.parse(date));
+						System.out.println(value);
+					}
+
+				}
+
+				
 				
 			}
 			
