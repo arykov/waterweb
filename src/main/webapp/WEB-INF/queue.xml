@@ -1,0 +1,14 @@
+<queue-entries>
+<!--Set the number of max concurrent requests to 10-->
+  <queue>
+    <name>scheduleQueue</name>
+    <rate>20/s</rate>
+    <bucket-size>40</bucket-size>
+    <max-concurrent-requests>1</max-concurrent-requests>
+    <retry-parameters>
+    	<task-retry-limit>2</task-retry-limit>
+    	<min-backoff-seconds>550</min-backoff-seconds> 
+    	<max-backoff-seconds>600</max-backoff-seconds> 
+    </retry-parameters>
+  </queue>
+</queue-entries>
