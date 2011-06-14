@@ -20,10 +20,20 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>3.0.5.RELEASE</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<type>jar</type>		
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>3.0.5.RELEASE</version>
+			<type>jar</type>		
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.8.1</version>
+			<type>jar</type>		
+		</dependency>
 
 		<!-- Google App Engine meta-package -->
 		<dependency>
