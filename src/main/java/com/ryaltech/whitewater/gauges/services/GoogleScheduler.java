@@ -11,12 +11,12 @@ public class GoogleScheduler implements Scheduler {
 
 	@Override
 	public void scheduleRiverLevelUpdate(RiverInfo ri) {
-		Queue q = QueueFactory.getQueue("scheduleQueue");
+		Queue q = QueueFactory.getDefaultQueue();//getQueue("scheduleQueue");
 		
-		
+		RetryOptions ro = RetryOptions.Builder.withTaskRetryLimit(2);
 		
 		q.add(TaskOptions.Builder.withUrl(String.format(
-				"/services/updateRiverLevel/%s", ri.getRiverId()))/*.method(TaskOptions.Method.GET)*/);
+				"/services/updateRiverLevel/%s", ri.getRiverId())).retryOptions(ro)/*.method(TaskOptions.Method.GET)*/);
 
 	}
 
