@@ -1,9 +1,5 @@
 package com.ryaltech.log;
 
-import org.apache.log4j.xml.DOMConfigurator;
-import org.apache.log4j.helpers.LogLog;
-import java.net.URL;
-
 /**
  * Logging class that brings Java5 features to log4j. In addition to the regular
  * debug, info, warn, and error methods from log4j, this class implements
@@ -37,12 +33,12 @@ import java.net.URL;
 
 public class Logger {
 	public static Logger getLogger(Class<? extends Object> clazz) {
-		return new Logger(org.apache.log4j.Logger.getLogger(clazz.getName()));
+		return new Logger(org.slf4j.LoggerFactory.getLogger(clazz.getName()));
 	}
 
-	private org.apache.log4j.Logger impl;
+	private org.slf4j.Logger impl;
 
-	private Logger(org.apache.log4j.Logger impl) {
+	private Logger(org.slf4j.Logger impl) {
 		this.impl = impl;
 	}
 
@@ -51,9 +47,9 @@ public class Logger {
 	}
 
 	public void debug(String message, Object... args) {
-		if (this.impl.isDebugEnabled()) {
-			this.impl.debug(String.format(message, args));
-		}
+
+		this.impl.debug(message, args);
+
 	}
 
 	public void error(String message) {
