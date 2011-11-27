@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.ryaltech.log.Logger;
-
+import com.ryaltech.whitewater.gauges.model.RiverInfo;
+import com.ryaltech.whitewater.gauges.model.RiverLevel;
 import com.ryaltech.whitewater.gauges.services.GaugeDataCollectionHub;
-import com.ryaltech.whitewater.gauges.services.RiverInfo;
-import com.ryaltech.whitewater.gauges.services.RiverLevel;
 import com.ryaltech.whitewater.gauges.services.Scheduler;
 import com.ryaltech.whitewater.gauges.services.WaterWebDao;
 

@@ -1,9 +1,17 @@
-package com.ryaltech.whitewater.gauges.services;
+package com.ryaltech.whitewater.gauges.model;
 
 import java.util.Date;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
 public class RiverLevel implements Comparable<RiverLevel>{
-	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	private RiverInfo riverInfo;
 	private float level;
 	private Date lastUpdated;

@@ -20,7 +20,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -28,6 +27,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.ryaltech.log.Logger;
+import com.ryaltech.whitewater.gauges.model.RiverInfo;
+import com.ryaltech.whitewater.gauges.model.RiverLevel;
 
 public class EcWaterWebDataCollector extends AbstractGaugeDataCollector {
 	private static SimpleDateFormat GaugeDateFormat = new SimpleDateFormat(

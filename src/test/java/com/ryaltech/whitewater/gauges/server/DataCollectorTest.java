@@ -1,15 +1,14 @@
 package com.ryaltech.whitewater.gauges.server;
 
-import org.springframework.beans.factory.BeanFactory;
+import junit.framework.TestCase;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.ryaltech.whitewater.gauges.model.RiverInfo;
+import com.ryaltech.whitewater.gauges.model.RiverLevel;
 import com.ryaltech.whitewater.gauges.services.EcWaterWebDataCollector;
 import com.ryaltech.whitewater.gauges.services.GaugeDataCollectionHub;
-import com.ryaltech.whitewater.gauges.services.RiverInfo;
-import com.ryaltech.whitewater.gauges.services.RiverLevel;
-
-import junit.framework.TestCase;
 
 public class DataCollectorTest extends TestCase {
 

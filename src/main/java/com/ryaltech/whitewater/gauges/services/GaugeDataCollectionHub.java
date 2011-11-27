@@ -3,6 +3,9 @@ package com.ryaltech.whitewater.gauges.services;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ryaltech.whitewater.gauges.model.RiverInfo;
+import com.ryaltech.whitewater.gauges.model.RiverLevel;
+
 public class GaugeDataCollectionHub {
 	private Map<String, GaugeDataCollector> gaugeDataCollectorsMap = new HashMap<String, GaugeDataCollector>();
 

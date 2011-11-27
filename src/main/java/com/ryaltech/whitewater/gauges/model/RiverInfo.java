@@ -1,6 +1,15 @@
-package com.ryaltech.whitewater.gauges.services;
+package com.ryaltech.whitewater.gauges.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
 public class RiverInfo {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	private String riverId;
 	private String riverName;
 	private String gaugeDataCollectorId;	

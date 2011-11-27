@@ -34,7 +34,7 @@ import java.net.URL;
  * 
  * @author Rykov
  */
-@SuppressWarnings("ucd")
+
 public class Logger {
 	public static Logger getLogger(Class<? extends Object> clazz) {
 		return new Logger(org.apache.log4j.Logger.getLogger(clazz.getName()));

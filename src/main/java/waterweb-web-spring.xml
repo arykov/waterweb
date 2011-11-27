@@ -20,7 +20,7 @@
 		<constructor-arg>
 			<map>
 				<entry key="UpperPet">
-					<bean class="com.ryaltech.whitewater.gauges.services.RiverInfo">
+					<bean class="com.ryaltech.whitewater.gauges.model.RiverInfo">
 						<property name="gaugeId" value="02KB001" />
 						<property name="gaugeDataCollectorId"
 							value="com.ryaltech.whitewater.gauges.services.EcWaterWebDataCollector" />
