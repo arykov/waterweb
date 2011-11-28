@@ -86,4 +86,22 @@ public class RestController {
 		return mv;
 	}
 
+	@RequestMapping(value = "/getRivers", method = RequestMethod.GET)
+	public ModelAndView getRivers(Model model) {
+
+		ModelAndView mv = new ModelAndView("jacksonJson");
+		mv.addObject(dao.getAllRiversInfo());
+		return mv;
+	}
+
+	@RequestMapping(value = "/addRivers/{rivers}", method = RequestMethod.GET)
+	public ModelAndView addRivers(@PathVariable("rivers")RiverInfo[] rivers, Model model) {
+
+		
+		dao.persistRunnableConditions(rivers);
+		ModelAndView mv = new ModelAndView("jacksonJson");
+		mv.addObject(dao.getAllRiversInfo());
+		return mv;
+	}
+
 }

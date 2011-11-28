@@ -16,7 +16,7 @@ public class TestServlet extends HttpServlet {
 
 		try {
 			JpaWaterWebDao dao=	new JpaWaterWebDao();
-			dao.insertRunnableConditions(new RiverInfo());
+			dao.persistRunnableConditions(new RiverInfo());
 			RiverInfo ris[] = dao.getAllRiversInfo();
 			resp.getWriter().println(ris.length);
 		} catch (Exception ex) {

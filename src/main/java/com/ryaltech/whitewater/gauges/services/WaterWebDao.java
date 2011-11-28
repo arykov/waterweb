@@ -11,7 +11,7 @@ public interface WaterWebDao {
 	RiverLevel getLatestRiverLevel(String riverId);
 	RiverLevel [] getLatestRiverLevels();
 	
-	void insertRunnableConditions(RiverInfo ...riversInfo);
+	void persistRunnableConditions(RiverInfo ...riversInfo);
 	void insertRiverLevels(RiverLevel ... riverLevels);
 	void purgeRiverLevels(Date before);
 	

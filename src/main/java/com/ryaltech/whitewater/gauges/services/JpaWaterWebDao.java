@@ -2,26 +2,27 @@ package com.ryaltech.whitewater.gauges.services;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
 import javax.persistence.Query;
 
 import com.ryaltech.whitewater.gauges.model.RiverInfo;
 import com.ryaltech.whitewater.gauges.model.RiverLevel;
 
 public class JpaWaterWebDao implements WaterWebDao{
-	private static final EntityManagerFactory emfInstance =
-	        Persistence.createEntityManagerFactory("transactions-optional");
+	@PersistenceContext
+    private EntityManager em;
+	        
 
 	@Override
-	public RiverInfo[] getAllRiversInfo() {
-		EntityManager em = emfInstance.createEntityManager();
+	public RiverInfo[] getAllRiversInfo() {	
 		Query q = em.createQuery("select t from RiverInfo t");
 		List<RiverInfo> ri = q.getResultList();
-		RiverInfo[] riArray =ri.toArray(new RiverInfo[ri.size()]);
-		em.close();
+		RiverInfo[] riArray =ri.toArray(new RiverInfo[ri.size()]);		
 		return riArray;
 	}
 
@@ -44,17 +45,19 @@ public class JpaWaterWebDao implements WaterWebDao{
 	}
 
 	@Override
-	public void insertRunnableConditions(RiverInfo... riversInfo) {
-		EntityManager em = emfInstance.createEntityManager();
+	public void persistRunnableConditions(RiverInfo... riversInfo) {
+		
 		for(RiverInfo ri:riversInfo){
+			if(ri.getRiverId() == null)ri.setRiverId(UUID.randomUUID().toString());
 			em.persist(ri);
 		}		
-		em.close();		
+				
 	}
 
 	@Override
 	public void insertRiverLevels(RiverLevel... riverLevels) {
-		// TODO Auto-generated method stub
+		
+
 		
 	}
 

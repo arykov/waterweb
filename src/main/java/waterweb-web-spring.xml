@@ -16,7 +16,7 @@
 		</constructor-arg>
 	</bean>
 
-	<bean class="com.ryaltech.whitewater.gauges.services.InMemoryWaterWebDao">
+	<!-- bean class="com.ryaltech.whitewater.gauges.services.InMemoryWaterWebDao">
 		<constructor-arg>
 			<map>
 				<entry key="UpperPet">
@@ -31,8 +31,21 @@
 				</entry>
 			</map>
 		</constructor-arg>
+	</bean-->
+
+	<!-- required to inject EntityManager into JpaWaterWebDao -->
+	<bean
+		class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+	<bean class="com.ryaltech.whitewater.gauges.services.JpaWaterWebDao">
 	</bean>
 
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean"
+		lazy-init="true">
+		<property name="persistenceUnitName" value="transactions-optional" />
+	</bean>
+	
+	
 	<bean class="com.ryaltech.whitewater.gauges.services.GoogleScheduler" />
 
 

@@ -24,6 +24,7 @@ public class DataCollectorTest extends TestCase {
 				+ rv.getLastUpdated());
 	}
 
+	/*
 	public void testGaugeDataCollectorHubFromSpringCtx() {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"waterweb-web-spring.xml");
@@ -39,5 +40,6 @@ public class DataCollectorTest extends TestCase {
 		System.out.println(rv.getRiverInfo().getRiverId() + ":" + rv.getLevel() + ":"
 				+ rv.getLastUpdated());
 	}
+	*/
 
 }

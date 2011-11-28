@@ -40,7 +40,7 @@ public class InMemoryWaterWebDao implements WaterWebDao {
 	}
 
 	@Override
-	public void insertRunnableConditions(RiverInfo... conditions) {
+	public void persistRunnableConditions(RiverInfo... conditions) {
 		for (RiverInfo condition : conditions) {
 			riverInfoMap.put(condition.getGaugeId(), condition);
 		}
