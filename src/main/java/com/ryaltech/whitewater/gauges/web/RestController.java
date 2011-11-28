@@ -3,9 +3,14 @@ package com.ryaltech.whitewater.gauges.web;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.ryaltech.log.Logger;
@@ -28,6 +33,10 @@ public class RestController {
 	@Autowired
 	private Scheduler scheduler;
 
+	@InitBinder
+	public void initBinder(WebDataBinder binder){
+		//binder.registerCustomEditor(RiverInfo.class, propertyEditor)
+	}
 	@RequestMapping(value = "/getGaugeValue/{gaugeDataCollectorId}/{gaugeId}", method = RequestMethod.GET)
 	public ModelAndView getGaugeValue(
 			@PathVariable("gaugeDataCollectorId") String gaugeDataCollectorId,
@@ -94,8 +103,8 @@ public class RestController {
 		return mv;
 	}
 
-	@RequestMapping(value = "/addRivers/{rivers}", method = RequestMethod.GET)
-	public ModelAndView addRivers(@PathVariable("rivers")RiverInfo[] rivers, Model model) {
+	@RequestMapping(value = "/addRivers", method = RequestMethod.GET)
+	public ModelAndView addRivers(@RequestParam("rivers") RiverInfo[] rivers, Model model) {
 
 		
 		dao.persistRunnableConditions(rivers);
